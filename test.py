@@ -1,3 +1,4 @@
+from time import time
 from multicontextHost import multicontextHost
 from serverlessFunction import serverlessFunction
 
@@ -12,5 +13,8 @@ def test(server, context:dict):
 
     return {"ok": 1, "c" : c}
 
-response = test(serverContext, {"a":10, "b":20})
-print(response)
+dataset = []
+for i in range(10000):
+    dataset.append({"a":10, "b":30})
+
+test(serverContext, set=dataset)

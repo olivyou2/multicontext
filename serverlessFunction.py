@@ -8,7 +8,7 @@ from typing import Callable
 import multicontextHost
 
 def serverlessFunction(func:Callable):
-    def wrapper(host:multicontextHost, context):
+    def wrapper(host:multicontextHost, context=None, set=None):
         stt = time()
 
         rand_host, rand_port = host.GetRandomHost()
@@ -18,12 +18,25 @@ def serverlessFunction(func:Callable):
 
         source = "\n".join(inspect.getsource(func).split("\n")[1:])
 
+        executeSet = list()
+
         func_name = func.__name__
+
+        if (context != None):
+            executeSet.append({
+                "arg": context
+            })
+        else:
+            for item in set:
+                executeSet.append({
+                    "arg": item
+                })
+
         send_context = {
             "type": "execute",
             "source": source,
             "name": func_name,
-            "arg": context
+            "executes": executeSet
         }
 
         client_socket.send((json.dumps(send_context)+"\r\n").encode())
@@ -36,12 +49,12 @@ def serverlessFunction(func:Callable):
             recv = recv_buff.decode("utf-8")
 
             buff += recv
-            index = recv.find("\r\n")
+            index = buff.find("\r\n")
 
             if (index == -1):
                 continue
             else:
-                result = json.loads(recv[:index])
+                result = json.loads(buff[:index])
                 func_res = result
                 break
 
@@ -49,6 +62,7 @@ def serverlessFunction(func:Callable):
         edd = time()
 
         duration_ms = (edd-stt)*1000
+        print(f"Duration : {duration_ms}")
 
         return func_res
 
