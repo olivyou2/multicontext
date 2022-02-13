@@ -1,7 +1,7 @@
-from main import MulticontextHost
-from main import serverlessFunction
+from multicontextHost import multicontextHost
+from serverlessFunction import serverlessFunction
 
-serverContext = MulticontextHost()
+serverContext = multicontextHost()
 serverContext.AddHost("127.0.0.1", 8888)
 
 @serverlessFunction
