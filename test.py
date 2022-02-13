@@ -1,9 +1,27 @@
-from multicontextHost import ECRHost, multicontextHost
+from time import sleep
+from multicontextHost import ECSHost
+from multicontextHost import MulticontextHost
 from serverlessFunction import serverlessFunction
 
-host = ECRHost()
+host = ECSHost()
+waitTime = 0
 
-mcontext = host.getMulticontextHost()
+running, pending = host.GetHostCount()
+if (running == 0):
+    host.RunTask(1)
+
+print(f"Container Status Running : {running}, Pending : {pending}")
+
+while True:
+    running, pending = host.GetHostCount()
+    waitTime += 1
+    if (running > 0):
+        break
+
+    print(f"Wait for Run instance ... Elapsed : {waitTime}s")
+    sleep(1)
+
+mcontext = host.GetMulticontextHost()
 
 @serverlessFunction
 def WonhoFunction(host, context):
@@ -13,16 +31,16 @@ def WonhoFunction(host, context):
 
     return {"c": c}
 
-result = WonhoFunction(mcontext, set=
-    [
-        {"a":3, "b":4},
-        {"a":3, "b":5},
-        {"a":3, "b":6},
-        {"a":3, "b":7},
-    ]
-)
+WonhoFunction(mcontext, context={"a":3, "b":4})
+    
+dataset = []
+for i in range(10000):
+    dataset.append({"a":3, "b":4})
 
-print(result)
+WonhoFunction(mcontext, set=dataset)
+    #WonhoFunction(mcontext, context={"a":3, "b":4})
+
+#mcontext.TerminateHost()
 
 #
 #response = WonhoFunction(multicontext, context={"a":"b"})

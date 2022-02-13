@@ -1,8 +1,9 @@
+from imp import source_from_cache
 import json
 import inspect
 from math import floor
 from random import random
-from socket import AF_INET, SOCK_STREAM, socket
+from socket import AF_INET, IPPROTO_TCP, SOCK_DGRAM, SOCK_STREAM, TCP_NODELAY, socket
 from time import time
 from typing import Callable
 import multicontextHost
@@ -14,9 +15,22 @@ def serverlessFunction(func:Callable):
         rand_host, rand_port = host.GetRandomHost()
 
         client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((rand_host, rand_port))
+        client_socket.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
 
-        source = "\n".join(inspect.getsource(func).split("\n")[1:])
+        client_socket.connect((rand_host, rand_port))
+        global sourceCache
+        sourceCacheHit = ""
+
+        if "sourceCache" not in globals():
+            sourceCache = dict()
+        
+        if (func.__name__ in sourceCache):
+            sourceCacheHit = sourceCache[func.__name__]
+        else:
+            sourceCache[func.__name__] = inspect.getsource(func)
+            sourceCacheHit = sourceCache[func.__name__]
+
+        source = "\n".join(sourceCacheHit.split("\n")[1:])
 
         executeSet = list()
 
@@ -36,11 +50,13 @@ def serverlessFunction(func:Callable):
             "type": "execute",
             "source": source,
             "name": func_name,
-            "executes": executeSet
+            "executes": executeSet,
+            "time": time()
         }
 
         client_socket.send((json.dumps(send_context)+"\r\n").encode())
         
+
         buff = ""
         func_res = None
 
@@ -59,10 +75,7 @@ def serverlessFunction(func:Callable):
                 break
 
         client_socket.close()
-        edd = time()
-
-        duration_ms = (edd-stt)*1000
-        print(f"Duration : {duration_ms}")
+        print(f"Duration : {(time()-stt)*1000}")
 
         return func_res
 

@@ -11,7 +11,7 @@ class ECSHost:
         self.ec2Resource = boto3.resource('ec2')
 
         self.CheckAndCreateSecurityGroup()
-        self.registerTaskDefinition()
+        self.RegisterTaskDefinition()
 
     def GetSubnets(self):
         arr = []
@@ -78,8 +78,11 @@ class ECSHost:
     def DescribeTask(self):
         taskIds = self.ListTask()
 
-        response = self.ecsClient.Describe_tasks(cluster="multicontext-cluster", tasks=taskIds)
-        return response
+        if (len(taskIds) == 0):
+            return {"tasks" : []}
+        else:
+            response = self.ecsClient.describe_tasks(cluster="multicontext-cluster", tasks=taskIds)
+            return response
 
     def GetAvailableEnis(self):
         enis = list()
@@ -98,7 +101,7 @@ class ECSHost:
         running = 0
         pending = 0
 
-        for describe in describes["task"]:
+        for describe in describes["tasks"]:
             containers = describe["containers"]
             if (containers[0]["lastStatus"] == "RUNNING"):
                 running += 1
@@ -117,7 +120,7 @@ class ECSHost:
         publicip = list()
 
         for eni in enis:
-            publicip.append(self.getPublicIp(eni))
+            publicip.append(self.GetPublicIp(eni))
 
         return publicip
 
@@ -191,7 +194,7 @@ class ECSHost:
 
     def GetMulticontextHost(self):
         host = MulticontextHost()
-        for ip in self.getClutserIps():
+        for ip in self.GetClutserIps():
             host.AddHost(ip, 8888)
 
         return host
