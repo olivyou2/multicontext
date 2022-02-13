@@ -4,7 +4,7 @@ from math import floor
 from random import random
 from socket import AF_INET, SOCK_STREAM, socket
 
-class ECRHost:
+class ECSHost:
     def __init__(self):
         self.ecsClient = boto3.client("ecs")
         self.ec2Client = boto3.client("ec2")
@@ -66,25 +66,25 @@ class ECRHost:
         else:
             return groupId
             
-    def createCluster(self):
+    def CreateCluster(self):
         self.ecsClient.create_cluster(
             clusterName='multicontext-cluster'
         )
 
-    def listTask(self):
+    def ListTask(self):
         response = self.ecsClient.list_tasks(cluster="multicontext-cluster")
         return response["taskArns"]
     
-    def describeTask(self):
-        taskIds = self.listTask()
+    def DescribeTask(self):
+        taskIds = self.ListTask()
 
-        response = self.ecsClient.describe_tasks(cluster="multicontext-cluster", tasks=taskIds)
+        response = self.ecsClient.Describe_tasks(cluster="multicontext-cluster", tasks=taskIds)
         return response
 
-    def getAvailableEnis(self):
+    def GetAvailableEnis(self):
         enis = list()
 
-        describes = self.describeTask()
+        describes = self.DescribeTask()
         for describe in describes["tasks"]:
             attach = describe["attachments"]
             containers = describe["containers"]
@@ -93,8 +93,8 @@ class ECRHost:
 
         return enis
 
-    def getHostCount(self):
-        describes = self.describeTask()
+    def GetHostCount(self):
+        describes = self.DescribeTask()
         running = 0
         pending = 0
 
@@ -107,13 +107,13 @@ class ECRHost:
         
         return running, pending
 
-    def getPublicIp(self, eni):
+    def GetPublicIp(self, eni):
         ni = self.ec2Resource.NetworkInterface(eni)
         attributes = ni.association_attribute
         return attributes["PublicIp"]
             
-    def getClutserIps(self):
-        enis = self.getAvailableEnis()
+    def GetClutserIps(self):
+        enis = self.GetAvailableEnis()
         publicip = list()
 
         for eni in enis:
@@ -121,7 +121,7 @@ class ECRHost:
 
         return publicip
 
-    def registerTaskDefinition(self):
+    def RegisterTaskDefinition(self):
         response = self.ecsClient.register_task_definition(
             executionRoleArn= "arn:aws:iam::587005168077:role/ecsTaskExecutionRole",
             containerDefinitions= [
@@ -164,7 +164,7 @@ class ECRHost:
         )
         return response
 
-    def runTask(self, count):
+    def RunTask(self, count):
         response=self.ecsClient.run_task(
             capacityProviderStrategy=[
                 {
@@ -189,14 +189,14 @@ class ECRHost:
         )
         return response
 
-    def getMulticontextHost(self):
-        host = multicontextHost()
+    def GetMulticontextHost(self):
+        host = MulticontextHost()
         for ip in self.getClutserIps():
             host.AddHost(ip, 8888)
 
         return host
-        
-class multicontextHost:    
+
+class MulticontextHost:    
     def __init__(self) -> None:
         self.hosts = list()
 
