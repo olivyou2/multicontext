@@ -3,7 +3,8 @@
 
 ### How to use it
 ~~~~python
-from multicontext import MulticontextHost, serverlessFunction
+from multicontext.multicontextHost import multicontextHost
+from multicontext.serverlessFunction import serverlessFunction
 
 host = MulticontextHost()
 host.AddHost("Server Host Here", Server Port Here)
