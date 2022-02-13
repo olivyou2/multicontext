@@ -1,20 +1,33 @@
-from time import time
-from multicontextHost import multicontextHost
+from multicontextHost import ECRHost, multicontextHost
 from serverlessFunction import serverlessFunction
 
-serverContext = multicontextHost()
-serverContext.AddHost("127.0.0.1", 8888)
+host = ECRHost()
+
+mcontext = host.getMulticontextHost()
 
 @serverlessFunction
-def test(server, context:dict):
+def WonhoFunction(host, context):
     a = context["a"]
     b = context["b"]
     c = a + b
 
-    return {"ok": 1, "c" : c}
+    return {"c": c}
 
-dataset = []
-for i in range(10000):
-    dataset.append({"a":10, "b":30})
+result = WonhoFunction(mcontext, set=
+    [
+        {"a":3, "b":4},
+        {"a":3, "b":5},
+        {"a":3, "b":6},
+        {"a":3, "b":7},
+    ]
+)
 
-test(serverContext, set=dataset)
+print(result)
+
+#
+#response = WonhoFunction(multicontext, context={"a":"b"})
+
+#newHost = multicontextHost()
+#newHost.AddHost("127.0.0.1", 8888)
+
+#WonhoFunction(newHost, context={"a":3})
