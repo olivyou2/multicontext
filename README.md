@@ -1,5 +1,5 @@
 # Multicontext
-여러 Host 에서 Python 코드를 원격으로 실행하게 해주는 Framework
+여러 host 에서 python 코드를 실행시킬 수 있습니다. multicontext-host 를 Standalone 으로 실행시킬 수도 있고, AWS 설정을 통해, 코드 내부에서 원격으로 Host 를 실행시킬 수 있습니다.
 
 ### How to use it
 ~~~~python
